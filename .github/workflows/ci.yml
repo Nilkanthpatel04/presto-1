@@ -124,6 +124,17 @@ jobs:
           if [ "${AWS_ACCESS_KEY_ID}" != "" ]; then
             ./mvnw test -B -Dair.check.skip-all -pl presto-hive -P test-hive-glue
           fi
+      - name: Run Hive Azure ABFS Tests
+        if: matrix.config != 'config-empty' # Hive 1.x does not support Azure storage
+        env:
+          ABFS_CONTAINER: ${{ secrets.AzureAbfsContainer }}
+          ABFS_ACCOUNT: ${{ secrets.AzureAbfsAccount }}
+          ABFS_ACCESS_KEY: ${{ secrets.AzureAbfsAccessKey }}
+        run: |
+          if [ "${ABFS_CONTAINER}" != "" ]; then
+            source presto-product-tests/conf/product-tests-${{ matrix.config }}.sh &&
+              presto-hive-hadoop2/bin/run_hive_abfs_tests.sh
+          fi
       - name: Run Hive Alluxio Tests
         run: |
           source presto-product-tests/conf/product-tests-${{ matrix.config }}.sh &&

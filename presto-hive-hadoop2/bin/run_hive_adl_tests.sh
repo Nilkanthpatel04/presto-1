@@ -9,7 +9,11 @@ test -v ADL_CLIENT_ID
 test -v ADL_CREDENTIAL
 test -v ADL_REFRESH_URL
 
-start_docker_containers
+cleanup_hadoop_docker_containers
+start_hadoop_docker_containers
+
+test_directory="$(date '+%Y%m%d-%H%M%S')-$(uuidgen | sha1sum | cut -b 1-6)"
+test_root="adl://${ADL_NAME}.azuredatalakestore.net/${test_directory}"
 
 # insert Azure credentials
 # TODO replace core-site.xml.adl-template with apply-site-xml-override.sh
@@ -21,12 +25,12 @@ exec_in_hadoop_master_container sed -i \
     /etc/hadoop/conf/core-site.xml
 
 # create test table
-table_path="adl://${ADL_NAME}.azuredatalakestore.net/presto_test_external_fs_2/"
+table_path="${test_root}/presto_test_external_fs/"
 exec_in_hadoop_master_container hadoop fs -mkdir -p "${table_path}"
-exec_in_hadoop_master_container hadoop fs -copyFromLocal -f /tmp/test_table.csv{,.gz,.bz2,.lz4} "${table_path}"
+exec_in_hadoop_master_container hadoop fs -copyFromLocal -f /docker/files/test_table.csv{,.gz,.bz2,.lz4} "${table_path}"
 exec_in_hadoop_master_container /usr/bin/hive -e "CREATE EXTERNAL TABLE presto_test_external_fs(t_bigint bigint) LOCATION '${table_path}'"
 
-table_path="adl://${ADL_NAME}.azuredatalakestore.net/presto_test_external_fs_with_header/"
+table_path="${test_root}/presto_test_external_fs_with_header/"
 exec_in_hadoop_master_container hadoop fs -mkdir -p "${table_path}"
 exec_in_hadoop_master_container hadoop fs -copyFromLocal -f /docker/files/test_table_with_header.csv{,.gz,.bz2,.lz4} "${table_path}"
 exec_in_hadoop_master_container /usr/bin/hive -e "
@@ -35,7 +39,7 @@ exec_in_hadoop_master_container /usr/bin/hive -e "
     LOCATION '${table_path}'
     TBLPROPERTIES ('skip.header.line.count'='1')"
 
-table_path="adl://${ADL_NAME}.azuredatalakestore.net/presto_test_external_fs_with_header_and_footer/"
+table_path="${test_root}/presto_test_external_fs_with_header_and_footer/"
 exec_in_hadoop_master_container hadoop fs -mkdir -p "${table_path}"
 exec_in_hadoop_master_container hadoop fs -copyFromLocal -f /docker/files/test_table_with_header_and_footer.csv{,.gz,.bz2,.lz4} "${table_path}"
 exec_in_hadoop_master_container /usr/bin/hive -e "
@@ -65,6 +69,6 @@ EXIT_CODE=$?
 set -e
 popd
 
-cleanup_docker_containers
+cleanup_hadoop_docker_containers
 
 exit ${EXIT_CODE}

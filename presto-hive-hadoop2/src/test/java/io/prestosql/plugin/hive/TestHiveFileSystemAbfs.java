@@ -75,7 +75,7 @@ public class TestHiveFileSystemAbfs
     @Override
     protected void onSetupComplete()
     {
-        ensureTableExists(table, "presto_test_external_fs_v2", ImmutableMap.of());
+        ensureTableExists(table, "presto_test_external_fs", ImmutableMap.of());
 
         ensureTableExists(tableWithHeader, "presto_test_external_fs_with_header", ImmutableMap.of(SKIP_HEADER_LINE_COUNT, 1));
         ensureTableExists(tableWithHeaderAndFooter, "presto_test_external_fs_with_header_and_footer", ImmutableMap.of(SKIP_HEADER_LINE_COUNT, 2, SKIP_FOOTER_LINE_COUNT, 2));
