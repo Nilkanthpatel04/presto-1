@@ -26,6 +26,8 @@ exec_in_hadoop_master_container sed -i \
 docker exec "$(hadoop_master_container)" supervisorctl restart hive-server2
 retry check_hadoop
 
+exec_in_hadoop_master_container hadoop fs -ls "abfs://${ABFS_CONTAINER}@${ABFS_ACCOUNT}.dfs.core.windows.net/"
+
 # create test table
 table_path="${test_root}/presto_test_external_fs/"
 exec_in_hadoop_master_container hadoop fs -mkdir -p "${table_path}"
